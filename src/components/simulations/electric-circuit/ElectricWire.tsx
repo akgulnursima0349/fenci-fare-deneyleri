@@ -10,7 +10,7 @@ interface ElectricWireProps {
 }
 
 const ElectricWire: React.FC<ElectricWireProps> = ({ start, end, isActive }) => {
-  const wireRef = useRef<THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>>(null);
+  const wireRef = useRef<THREE.Mesh>(null);
   
   const distance = Math.sqrt(
     Math.pow(end[0] - start[0], 2) + 
@@ -27,7 +27,9 @@ const ElectricWire: React.FC<ElectricWireProps> = ({ start, end, isActive }) => 
   useFrame(({ clock }) => {
     if (wireRef.current && isActive) {
       const material = wireRef.current.material as THREE.MeshStandardMaterial;
-      material.emissiveIntensity = 0.3 + Math.sin(clock.elapsedTime * 10) * 0.2;
+      if (material.emissiveIntensity !== undefined) {
+        material.emissiveIntensity = 0.3 + Math.sin(clock.elapsedTime * 10) * 0.2;
+      }
     }
   });
 

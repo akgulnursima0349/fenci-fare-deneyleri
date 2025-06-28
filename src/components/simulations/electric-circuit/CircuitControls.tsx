@@ -1,7 +1,9 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { RotateCcw, Zap } from 'lucide-react';
 
 interface CircuitControlsProps {
   connections: string[];
@@ -14,58 +16,56 @@ const CircuitControls: React.FC<CircuitControlsProps> = ({
   onComponentClick, 
   onReset 
 }) => {
+  const components = [
+    { id: 'battery', name: 'Pil' },
+    { id: 'wire1', name: 'Tel 1' },
+    { id: 'wire2', name: 'Tel 2' },
+    { id: 'bulb', name: 'Ampul' }
+  ];
+
   return (
     <Card className="bg-white/5 backdrop-blur-lg border-white/10">
       <CardHeader>
-        <CardTitle className="text-white">Deney Adımları</CardTitle>
+        <CardTitle className="text-white flex items-center">
+          <Zap className="h-5 w-5 mr-2 text-yellow-400" />
+          Devre Kontrolleri
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-3">
-          <p className="text-blue-200 text-sm">
-            Elektrik devresini tamamlamak için bileşenlere sırayla tıklayın:
-          </p>
-          
-          <div className="grid grid-cols-2 gap-2">
-            <Button 
-              onClick={() => onComponentClick('battery')}
-              disabled={connections.includes('battery')}
-              className={`${connections.includes('battery') ? 'bg-green-500' : 'bg-red-500'} hover:opacity-80`}
+        <div className="grid grid-cols-2 gap-2">
+          {components.map(component => (
+            <Button
+              key={component.id}
+              onClick={() => onComponentClick(component.id)}
+              disabled={connections.includes(component.id)}
+              className={`${
+                connections.includes(component.id)
+                  ? 'bg-green-500/20 text-green-300 border-green-500/30'
+                  : 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+              } border`}
+              variant="outline"
             >
-              {connections.includes('battery') ? '✓ Pil Bağlandı' : '1. Pili Bağla'}
+              {component.name}
+              {connections.includes(component.id) && (
+                <Badge className="ml-2 bg-green-500/30 text-green-300">
+                  Bağlı
+                </Badge>
+              )}
             </Button>
-            
-            <Button 
-              onClick={() => onComponentClick('wire1')}
-              disabled={connections.includes('wire1') || !connections.includes('battery')}
-              className={`${connections.includes('wire1') ? 'bg-green-500' : 'bg-yellow-600'} hover:opacity-80`}
-            >
-              {connections.includes('wire1') ? '✓ Tel 1 Bağlandı' : '2. Tel 1 Bağla'}
-            </Button>
-            
-            <Button 
-              onClick={() => onComponentClick('bulb')}
-              disabled={connections.includes('bulb') || connections.length < 2}
-              className={`${connections.includes('bulb') ? 'bg-green-500' : 'bg-blue-500'} hover:opacity-80`}
-            >
-              {connections.includes('bulb') ? '✓ Ampul Bağlandı' : '3. Ampulü Bağla'}
-            </Button>
-            
-            <Button 
-              onClick={() => onComponentClick('wire2')}
-              disabled={connections.includes('wire2') || connections.length < 3}
-              className={`${connections.includes('wire2') ? 'bg-green-500' : 'bg-yellow-600'} hover:opacity-80`}
-            >
-              {connections.includes('wire2') ? '✓ Tel 2 Bağlandı' : '4. Tel 2 Bağla'}
-            </Button>
-          </div>
-          
-          <Button 
-            onClick={onReset}
-            variant="outline"
-            className="w-full mt-4"
-          >
-            Devreyi Sıfırla
-          </Button>
+          ))}
+        </div>
+        
+        <Button
+          onClick={onReset}
+          className="w-full bg-red-500/20 text-red-300 border-red-500/30 hover:bg-red-500/30"
+          variant="outline"
+        >
+          <RotateCcw className="h-4 w-4 mr-2" />
+          Devre Sıfırla
+        </Button>
+        
+        <div className="text-center text-sm text-blue-300">
+          {connections.length}/4 bileşen bağlandı
         </div>
       </CardContent>
     </Card>

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Text, Box, Cylinder } from '@react-three/drei';
+import { Text } from '@react-three/drei';
 
 interface CircuitComponentProps {
   position: [number, number, number];
@@ -28,13 +28,13 @@ const CircuitComponent: React.FC<CircuitComponentProps> = ({ position, type, isC
   const getGeometry = () => {
     switch (type) {
       case 'battery':
-        return <Box args={[0.8, 0.4, 0.2]} />;
+        return [0.8, 0.4, 0.2] as [number, number, number];
       case 'wire':
-        return <Cylinder args={[0.05, 0.05, 2, 8]} />;
+        return [0.05, 0.05, 2, 8] as [number, number, number, number];
       case 'bulb':
-        return <Cylinder args={[0.3, 0.2, 0.5, 8]} />;
+        return [0.3, 0.2, 0.5, 8] as [number, number, number, number];
       default:
-        return <Box args={[0.2, 0.2, 0.2]} />;
+        return [0.2, 0.2, 0.2] as [number, number, number];
     }
   };
 
@@ -51,6 +51,20 @@ const CircuitComponent: React.FC<CircuitComponentProps> = ({ position, type, isC
     }
   };
 
+  const renderGeometry = () => {
+    const args = getGeometry();
+    switch (type) {
+      case 'battery':
+        return <boxGeometry args={args as [number, number, number]} />;
+      case 'wire':
+        return <cylinderGeometry args={args as [number, number, number, number]} />;
+      case 'bulb':
+        return <cylinderGeometry args={args as [number, number, number, number]} />;
+      default:
+        return <boxGeometry args={args as [number, number, number]} />;
+    }
+  };
+
   return (
     <group>
       <mesh
@@ -60,7 +74,7 @@ const CircuitComponent: React.FC<CircuitComponentProps> = ({ position, type, isC
         onPointerOut={() => setHovered(false)}
         scale={hovered ? 1.1 : 1}
       >
-        {getGeometry()}
+        {renderGeometry()}
         <meshStandardMaterial 
           color={getColor()} 
           emissive={type === 'bulb' && isConnected ? '#ffff00' : '#000000'}

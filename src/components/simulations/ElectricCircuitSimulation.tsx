@@ -19,6 +19,8 @@ const ElectricCircuitSimulation: React.FC<ElectricCircuitSimulationProps> = ({
   const [observations, setObservations] = useState<string[]>([]);
 
   const handleComponentClick = (componentId: string) => {
+    console.log('Component clicked:', componentId);
+    
     if (connections.includes(componentId)) return;
     
     const newConnections = [...connections, componentId];
@@ -51,6 +53,7 @@ const ElectricCircuitSimulation: React.FC<ElectricCircuitSimulationProps> = ({
   };
 
   const resetCircuit = () => {
+    console.log('Circuit reset');
     setConnections([]);
     setCircuitComplete(false);
     setObservations([]);
