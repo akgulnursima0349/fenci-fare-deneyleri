@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Text, Box, Cylinder } from '@react-three/drei';
@@ -65,7 +64,7 @@ const ElectricWire: React.FC<{
   end: [number, number, number]; 
   isActive: boolean;
 }> = ({ start, end, isActive }) => {
-  const wireRef = useRef<THREE.Mesh>(null);
+  const wireRef = useRef<THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>>(null);
   
   const distance = Math.sqrt(
     Math.pow(end[0] - start[0], 2) + 
@@ -81,7 +80,8 @@ const ElectricWire: React.FC<{
 
   useFrame(({ clock }) => {
     if (wireRef.current && isActive) {
-      wireRef.current.material.emissiveIntensity = 0.3 + Math.sin(clock.elapsedTime * 10) * 0.2;
+      const material = wireRef.current.material as THREE.MeshStandardMaterial;
+      material.emissiveIntensity = 0.3 + Math.sin(clock.elapsedTime * 10) * 0.2;
     }
   });
 
