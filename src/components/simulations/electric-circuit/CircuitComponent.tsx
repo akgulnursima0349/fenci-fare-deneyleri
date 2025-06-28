@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Text } from '@react-three/drei';
+import { ThreeEvent } from '@react-three/fiber';
 
 interface CircuitComponentProps {
   position: [number, number, number];
@@ -51,6 +52,11 @@ const CircuitComponent: React.FC<CircuitComponentProps> = ({ position, type, isC
     }
   };
 
+  const handleClick = (event: ThreeEvent<MouseEvent>) => {
+    event.stopPropagation();
+    onClick();
+  };
+
   const renderGeometry = () => {
     const args = getGeometry();
     switch (type) {
@@ -69,7 +75,7 @@ const CircuitComponent: React.FC<CircuitComponentProps> = ({ position, type, isC
     <group>
       <mesh
         position={position}
-        onClick={onClick}
+        onClick={handleClick}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
         scale={hovered ? 1.1 : 1}

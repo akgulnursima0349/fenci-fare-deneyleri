@@ -24,21 +24,36 @@ const ElectricWire: React.FC<ElectricWireProps> = ({ start, end, isActive }) => 
     (start[2] + end[2]) / 2
   ];
 
+  // Calculate rotation to align cylinder with wire direction
+  const direction = new THREE.Vector3(
+    end[0] - start[0],
+    end[1] - start[1],
+    end[2] - start[2]
+  ).normalize();
+
+  const up = new THREE.Vector3(0, 1, 0);
+  const quaternion = new THREE.Quaternion().setFromUnitVectors(up, direction);
+
   useFrame(({ clock }) => {
     if (wireRef.current && isActive) {
       const material = wireRef.current.material as THREE.MeshStandardMaterial;
-      if (material.emissiveIntensity !== undefined) {
+      if (material && material.emissiveIntensity !== undefined) {
         material.emissiveIntensity = 0.3 + Math.sin(clock.elapsedTime * 10) * 0.2;
       }
     }
   });
 
   return (
-    <mesh ref={wireRef} position={midpoint}>
+    <mesh 
+      ref={wireRef} 
+      position={midpoint}
+      quaternion={quaternion}
+    >
       <cylinderGeometry args={[0.02, 0.02, distance, 8]} />
       <meshStandardMaterial 
         color={isActive ? '#ffaa00' : '#444444'}
         emissive={isActive ? '#ff6600' : '#000000'}
+        emissiveIntensity={isActive ? 0.3 : 0}
       />
     </mesh>
   );
