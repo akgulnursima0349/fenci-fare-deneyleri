@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Beaker, Send, MessageCircle, X, CheckCircle, Play, Pause } from "lucide-react";
+import { ArrowLeft, Beaker, Send, MessageCircle, X, CheckCircle, Play, Pause, Microscope } from "lucide-react";
 import { toast } from "sonner";
+import SimulationWrapper from "@/components/simulations/SimulationWrapper";
 
 const ExperimentPage = () => {
   const { experimentId } = useParams();
@@ -16,6 +16,7 @@ const ExperimentPage = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatMessage, setChatMessage] = useState("");
   const [isExperimentRunning, setIsExperimentRunning] = useState(false);
+  const [showSimulation, setShowSimulation] = useState(false);
   const [chatHistory, setChatHistory] = useState([
     {
       sender: "bot",
@@ -30,6 +31,7 @@ const ExperimentPage = () => {
       title: "Suda Çözünürlük Deneyi",
       description: "Farklı maddelerin suda çözünme özelliklerini keşfedelim",
       materials: ["Su", "Tuz", "Şeker", "Kum", "Yağ", "Beher", "Karıştırıcı"],
+      hasSimulation: true,
       steps: [
         {
           title: "Malzemeleri Hazırla",
@@ -61,6 +63,7 @@ const ExperimentPage = () => {
       title: "Asit-Baz İndikatörleri Deneyi",
       description: "Doğal indikatörlerle asit ve bazları ayırt edelim",
       materials: ["Lahana suyu", "Limon suyu", "Sabun suyu", "Su", "Test tüpleri"],
+      hasSimulation: false,
       steps: [
         {
           title: "Lahana Suyunu Hazırla",
@@ -73,6 +76,32 @@ const ExperimentPage = () => {
           description: "Farklı test tüplerine asit ve baz örneklerini ekleyelim.",
           action: "1. tüpe limon suyu, 2. tüpe sabun suyu ekle",
           question: "Bu maddelerin asit mi baz mı olduğunu nasıl anlayabiliriz?"
+        }
+      ]
+    },
+    "6": {
+      title: "Elektrik Devresi Deneyi",
+      description: "Basit elektrik devresi kurup ampul yakalım",
+      materials: ["Pil", "Ampul", "Teller", "Anahtar"],
+      hasSimulation: true,
+      steps: [
+        {
+          title: "Malzemeleri Hazırla",
+          description: "Elektrik devresi kurmak için gerekli malzemeleri hazırlayalım.",
+          action: "Pil, ampul, tel ve anahtarı hazırla",
+          question: "Elektrik akımının ampulu yakması için hangi şartlar gerekli?"
+        },
+        {
+          title: "Devreyi Kur",
+          description: "Pili, ampulü ve telleri birbirine bağlayarak devre oluşturalım.",
+          action: "Bileşenleri sırasıyla bağla",
+          question: "Devre neden kapalı bir döngü olmalı?"
+        },
+        {
+          title: "Devreyi Test Et",
+          description: "Anahtarı kapatarak devreyi çalıştıralım.",
+          action: "Anahtarı kapat ve ampulün yanmasını gözlemle",
+          question: "Ampul neden yanıyor? Elektrik akımı nasıl hareket ediyor?"
         }
       ]
     }
@@ -96,6 +125,35 @@ const ExperimentPage = () => {
     setChatHistory(prev => [...prev, {
       sender: "bot",
       message: `İlk adımımız: ${currentExperiment.steps[0].title}. ${currentExperiment.steps[0].question}`,
+      timestamp: new Date()
+    }]);
+  };
+
+  const handleStartSimulation = () => {
+    setShowSimulation(true);
+    toast.success("3D simülasyon başlatıldı! Malzemelerle etkileşime geçebilirsiniz.");
+    setChatHistory(prev => [...prev, {
+      sender: "bot",
+      message: "Harika! Şimdi 3D simülasyonla gerçek deney deneyimi yaşayacaksın. Malzemelere tıklayarak deneyi adım adım yapabilirsin!",
+      timestamp: new Date()
+    }]);
+  };
+
+  const handleSimulationStepComplete = (step: number) => {
+    setCurrentStep(Math.max(currentStep, step));
+    
+    // Add bot encouragement
+    const encouragements = [
+      "Harika! Bir adımı daha tamamladın! 🎉",
+      "Çok güzel gidiyorsun! Devam et! 👏",
+      "Mükemmel! Bilimsel yaklaşımın harika! 🔬",
+      "Süper! Gözlem yapma becerin gelişiyor! 👀"
+    ];
+    
+    const randomEncouragement = encouragements[Math.floor(Math.random() * encouragements.length)];
+    setChatHistory(prev => [...prev, {
+      sender: "bot",
+      message: randomEncouragement,
       timestamp: new Date()
     }]);
   };
@@ -187,172 +245,209 @@ const ExperimentPage = () => {
       </header>
 
       <div className="container mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Experiment Area */}
-          <div className="lg:col-span-2">
-            <Card className="bg-white/5 backdrop-blur-lg border-white/10 mb-6">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-white">{currentExperiment.title}</CardTitle>
-                  <Button
-                    onClick={isExperimentRunning ? () => setIsExperimentRunning(false) : handleStartExperiment}
-                    className={`${
-                      isExperimentRunning 
-                        ? "bg-red-500 hover:bg-red-600" 
-                        : "bg-green-500 hover:bg-green-600"
-                    }`}
-                  >
-                    {isExperimentRunning ? (
-                      <>
-                        <Pause className="h-4 w-4 mr-2" />
-                        Duraklat
-                      </>
-                    ) : (
-                      <>
-                        <Play className="h-4 w-4 mr-2" />
-                        {currentStep === 0 ? "Deneyi Başlat" : "Devam Et"}
-                      </>
-                    )}
-                  </Button>
-                </div>
-                <p className="text-blue-200">{currentExperiment.description}</p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {/* Progress Bar */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-white">İlerleme</span>
-                      <span className="text-cyan-400">{Math.round(progressPercentage)}%</span>
-                    </div>
-                    <Progress value={progressPercentage} className="h-2" />
-                  </div>
-
-                  {/* Current Step */}
-                  <div className="bg-white/5 rounded-lg p-6">
-                    <div className="flex items-center space-x-3 mb-4">
-                      <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center text-white font-bold">
-                        {currentStep + 1}
-                      </div>
-                      <h3 className="text-xl font-bold text-white">
-                        {currentExperiment.steps[currentStep]?.title || "Deney Tamamlandı"}
-                      </h3>
-                    </div>
-                    
-                    {currentExperiment.steps[currentStep] && (
-                      <>
-                        <p className="text-blue-200 mb-4">
-                          {currentExperiment.steps[currentStep].description}
-                        </p>
-                        
-                        <div className="bg-gradient-to-r from-purple-500/20 to-indigo-500/20 rounded-lg p-4 mb-4">
-                          <h4 className="text-white font-semibold mb-2">Yapılacak İşlem:</h4>
-                          <p className="text-purple-200">{currentExperiment.steps[currentStep].action}</p>
-                        </div>
-                        
-                        {isExperimentRunning && (
-                          <Button
-                            onClick={handleNextStep}
-                            className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
-                          >
-                            <CheckCircle className="h-4 w-4 mr-2" />
-                            {currentStep === currentExperiment.steps.length - 1 ? "Deneyi Tamamla" : "Sonraki Adım"}
-                          </Button>
-                        )}
-                      </>
-                    )}
-                    
-                    {currentStep >= currentExperiment.steps.length && (
-                      <div className="text-center py-8">
-                        <CheckCircle className="h-16 w-16 text-green-400 mx-auto mb-4" />
-                        <h3 className="text-2xl font-bold text-white mb-2">Tebrikler!</h3>
-                        <p className="text-green-400">Deneyi başarıyla tamamladınız! 🎉</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Materials */}
-            <Card className="bg-white/5 backdrop-blur-lg border-white/10">
-              <CardHeader>
-                <CardTitle className="text-white">Deney Malzemeleri</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {currentExperiment.materials.map((material, index) => (
-                    <div
-                      key={index}
-                      className="bg-white/10 rounded-lg p-3 text-center hover:bg-white/20 transition-colors"
-                    >
-                      <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full mx-auto mb-2"></div>
-                      <span className="text-white text-sm">{material}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+        {showSimulation ? (
+          <div className="space-y-6">
+            {/* Simulation Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Microscope className="h-6 w-6 text-purple-400" />
+                <h2 className="text-2xl font-bold text-white">3D Simülasyon</h2>
+              </div>
+              <Button
+                onClick={() => setShowSimulation(false)}
+                variant="outline"
+                className="text-white border-white/20 hover:bg-white/10"
+              >
+                Normal Görünüme Dön
+              </Button>
+            </div>
+            
+            {/* Simulation Component */}
+            <SimulationWrapper
+              experimentId={parseInt(experimentId || "1")}
+              onStepComplete={handleSimulationStepComplete}
+              currentStep={currentStep}
+            />
           </div>
-
-          {/* Chat Sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="bg-white/5 backdrop-blur-lg border-white/10 h-[600px] flex flex-col">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                <CardTitle className="text-white flex items-center">
-                  <MessageCircle className="h-5 w-5 mr-2 text-purple-400" />
-                  Laboratuvar Faresi 🐭
-                </CardTitle>
-                <Button
-                  onClick={() => setChatOpen(!chatOpen)}
-                  variant="ghost"
-                  size="sm"
-                  className="text-white hover:bg-white/10"
-                >
-                  {chatOpen ? <X className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
-                </Button>
-              </CardHeader>
-              
-              {chatOpen && (
-                <>
-                  <CardContent className="flex-1 overflow-y-auto space-y-4 pb-4">
-                    {chatHistory.map((msg, index) => (
-                      <div
-                        key={index}
-                        className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`max-w-[80%] p-3 rounded-lg ${
-                            msg.sender === 'user'
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-purple-500/20 text-purple-100 border border-purple-500/30'
-                          }`}
-                        >
-                          <p className="text-sm">{msg.message}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                  
-                  <div className="p-4 border-t border-white/10">
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Experiment Area */}
+            <div className="lg:col-span-2">
+              <Card className="bg-white/5 backdrop-blur-lg border-white/10 mb-6">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-white">{currentExperiment.title}</CardTitle>
                     <div className="flex space-x-2">
-                      <Input
-                        value={chatMessage}
-                        onChange={(e) => setChatMessage(e.target.value)}
-                        placeholder="Laboratuvar Faresi'ne sor..."
-                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                      />
-                      <Button onClick={handleSendMessage} size="sm">
-                        <Send className="h-4 w-4" />
+                      {currentExperiment.hasSimulation && (
+                        <Button
+                          onClick={handleStartSimulation}
+                          className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
+                        >
+                          <Microscope className="h-4 w-4 mr-2" />
+                          3D Simülasyon
+                        </Button>
+                      )}
+                      <Button
+                        onClick={isExperimentRunning ? () => setIsExperimentRunning(false) : handleStartExperiment}
+                        className={`${
+                          isExperimentRunning 
+                            ? "bg-red-500 hover:bg-red-600" 
+                            : "bg-green-500 hover:bg-green-600"
+                        }`}
+                      >
+                        {isExperimentRunning ? (
+                          <>
+                            <Pause className="h-4 w-4 mr-2" />
+                            Duraklat
+                          </>
+                        ) : (
+                          <>
+                            <Play className="h-4 w-4 mr-2" />
+                            {currentStep === 0 ? "Deneyi Başlat" : "Devam Et"}
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>
-                </>
-              )}
-            </Card>
+                  <p className="text-blue-200">{currentExperiment.description}</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {/* Progress Bar */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-white">İlerleme</span>
+                        <span className="text-cyan-400">{Math.round(progressPercentage)}%</span>
+                      </div>
+                      <Progress value={progressPercentage} className="h-2" />
+                    </div>
+
+                    {/* Current Step */}
+                    <div className="bg-white/5 rounded-lg p-6">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center text-white font-bold">
+                          {currentStep + 1}
+                        </div>
+                        <h3 className="text-xl font-bold text-white">
+                          {currentExperiment.steps[currentStep]?.title || "Deney Tamamlandı"}
+                        </h3>
+                      </div>
+                      
+                      {currentExperiment.steps[currentStep] && (
+                        <>
+                          <p className="text-blue-200 mb-4">
+                            {currentExperiment.steps[currentStep].description}
+                          </p>
+                          
+                          <div className="bg-gradient-to-r from-purple-500/20 to-indigo-500/20 rounded-lg p-4 mb-4">
+                            <h4 className="text-white font-semibold mb-2">Yapılacak İşlem:</h4>
+                            <p className="text-purple-200">{currentExperiment.steps[currentStep].action}</p>
+                          </div>
+                          
+                          {isExperimentRunning && (
+                            <Button
+                              onClick={handleNextStep}
+                              className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                            >
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                              {currentStep === currentExperiment.steps.length - 1 ? "Deneyi Tamamla" : "Sonraki Adım"}
+                            </Button>
+                          )}
+                        </>
+                      )}
+                      
+                      {currentStep >= currentExperiment.steps.length && (
+                        <div className="text-center py-8">
+                          <CheckCircle className="h-16 w-16 text-green-400 mx-auto mb-4" />
+                          <h3 className="text-2xl font-bold text-white mb-2">Tebrikler!</h3>
+                          <p className="text-green-400">Deneyi başarıyla tamamladınız! 🎉</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Materials */}
+              <Card className="bg-white/5 backdrop-blur-lg border-white/10">
+                <CardHeader>
+                  <CardTitle className="text-white">Deney Malzemeleri</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {currentExperiment.materials.map((material, index) => (
+                      <div
+                        key={index}
+                        className="bg-white/10 rounded-lg p-3 text-center hover:bg-white/20 transition-colors"
+                      >
+                        <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full mx-auto mb-2"></div>
+                        <span className="text-white text-sm">{material}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Chat Sidebar */}
+            <div className="lg:col-span-1">
+              <Card className="bg-white/5 backdrop-blur-lg border-white/10 h-[600px] flex flex-col">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                  <CardTitle className="text-white flex items-center">
+                    <MessageCircle className="h-5 w-5 mr-2 text-purple-400" />
+                    Laboratuvar Faresi 🐭
+                  </CardTitle>
+                  <Button
+                    onClick={() => setChatOpen(!chatOpen)}
+                    variant="ghost"
+                    size="sm"
+                    className="text-white hover:bg-white/10"
+                  >
+                    {chatOpen ? <X className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
+                  </Button>
+                </CardHeader>
+                
+                {chatOpen && (
+                  <>
+                    <CardContent className="flex-1 overflow-y-auto space-y-4 pb-4">
+                      {chatHistory.map((msg, index) => (
+                        <div
+                          key={index}
+                          className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div
+                            className={`max-w-[80%] p-3 rounded-lg ${
+                              msg.sender === 'user'
+                                ? 'bg-blue-500 text-white'
+                                : 'bg-purple-500/20 text-purple-100 border border-purple-500/30'
+                            }`}
+                          >
+                            <p className="text-sm">{msg.message}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                    
+                    <div className="p-4 border-t border-white/10">
+                      <div className="flex space-x-2">
+                        <Input
+                          value={chatMessage}
+                          onChange={(e) => setChatMessage(e.target.value)}
+                          placeholder="Laboratuvar Faresi'ne sor..."
+                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                          onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                        />
+                        <Button onClick={handleSendMessage} size="sm">
+                          <Send className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </Card>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
